@@ -46,11 +46,14 @@ NBLA_API CgVariablePtr gru(CgVariablePtr x, CgVariablePtr h, CgVariablePtr weigh
 NBLA_API vector<CgVariablePtr> convolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last);
 NBLA_API CgVariablePtr convolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last);
 
+NBLA_API vector<CgVariablePtr> fused_convolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, CgVariablePtr beta, CgVariablePtr gamma, CgVariablePtr mean, CgVariablePtr variance, CgVariablePtr z, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last, float decay_rate, float eps, bool batch_stat, const string & nonlinearity, const vector<float> & nonlinearity_args);
+NBLA_API CgVariablePtr fused_convolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, CgVariablePtr beta, CgVariablePtr gamma, CgVariablePtr mean, CgVariablePtr variance, CgVariablePtr z, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last, float decay_rate, float eps, bool batch_stat, const string & nonlinearity, const vector<float> & nonlinearity_args);
+
 NBLA_API vector<CgVariablePtr> depthwise_convolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int multiplier);
 NBLA_API CgVariablePtr depthwise_convolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int multiplier);
 
-NBLA_API vector<CgVariablePtr> deconvolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last);
-NBLA_API CgVariablePtr deconvolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last);
+NBLA_API vector<CgVariablePtr> deconvolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last, const vector<int> & output_padding);
+NBLA_API CgVariablePtr deconvolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int group, bool channel_last, const vector<int> & output_padding);
 
 NBLA_API vector<CgVariablePtr> depthwise_deconvolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int divisor);
 NBLA_API CgVariablePtr depthwise_deconvolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, const vector<int> & pad, const vector<int> & stride, const vector<int> & dilation, int divisor);
@@ -114,6 +117,9 @@ NBLA_API CgVariablePtr prelu(CgVariablePtr x0, CgVariablePtr x1, int base_axis);
 
 NBLA_API vector<CgVariablePtr> gelu(Context &ctx, CgVariablePtr x);
 NBLA_API CgVariablePtr gelu(CgVariablePtr x);
+
+NBLA_API vector<CgVariablePtr> mish(Context &ctx, CgVariablePtr x);
+NBLA_API CgVariablePtr mish(CgVariablePtr x);
 
 NBLA_API vector<CgVariablePtr> relu6(Context &ctx, CgVariablePtr x);
 NBLA_API CgVariablePtr relu6(CgVariablePtr x);
@@ -433,8 +439,8 @@ NBLA_API CgVariablePtr assign(CgVariablePtr dst, CgVariablePtr src);
 NBLA_API vector<CgVariablePtr> gather_nd(Context &ctx, CgVariablePtr x, CgVariablePtr indices);
 NBLA_API CgVariablePtr gather_nd(CgVariablePtr x, CgVariablePtr indices);
 
-NBLA_API vector<CgVariablePtr> scatter_nd(Context &ctx, CgVariablePtr data, CgVariablePtr indices, const vector<int> & shape);
-NBLA_API CgVariablePtr scatter_nd(CgVariablePtr data, CgVariablePtr indices, const vector<int> & shape);
+NBLA_API vector<CgVariablePtr> scatter_nd(Context &ctx, CgVariablePtr data, CgVariablePtr indices, CgVariablePtr out, const vector<int> & shape);
+NBLA_API CgVariablePtr scatter_nd(CgVariablePtr data, CgVariablePtr indices, CgVariablePtr out, const vector<int> & shape);
 
 NBLA_API vector<CgVariablePtr> interpolate(Context &ctx, CgVariablePtr x, const vector<int> & output_size, const string & mode, bool align_corners, bool half_pixel, bool half_pixel_for_nn, bool channel_last);
 NBLA_API CgVariablePtr interpolate(CgVariablePtr x, const vector<int> & output_size, const string & mode, bool align_corners, bool half_pixel, bool half_pixel_for_nn, bool channel_last);
@@ -517,6 +523,15 @@ NBLA_API CgVariablePtr epsilon_insensitive_loss(CgVariablePtr x0, CgVariablePtr 
 NBLA_API vector<CgVariablePtr> kl_multinomial(Context &ctx, CgVariablePtr p, CgVariablePtr q, int base_axis);
 NBLA_API CgVariablePtr kl_multinomial(CgVariablePtr p, CgVariablePtr q, int base_axis);
 
+NBLA_API vector<CgVariablePtr> affine_grid(Context &ctx, CgVariablePtr theta, const vector<int> & size, bool align_corners);
+NBLA_API CgVariablePtr affine_grid(CgVariablePtr theta, const vector<int> & size, bool align_corners);
+
+NBLA_API vector<CgVariablePtr> warp_by_grid(Context &ctx, CgVariablePtr x, CgVariablePtr grid, const string & mode, const string & padding_mode, bool align_corners, bool channel_last);
+NBLA_API CgVariablePtr warp_by_grid(CgVariablePtr x, CgVariablePtr grid, const string & mode, const string & padding_mode, bool align_corners, bool channel_last);
+
+NBLA_API vector<CgVariablePtr> warp_by_flow(Context &ctx, CgVariablePtr data, CgVariablePtr flow);
+NBLA_API CgVariablePtr warp_by_flow(CgVariablePtr data, CgVariablePtr flow);
+
 NBLA_API vector<CgVariablePtr> binary_sigmoid(Context &ctx, CgVariablePtr x);
 NBLA_API CgVariablePtr binary_sigmoid(CgVariablePtr x);
 
@@ -553,6 +568,12 @@ NBLA_API CgVariablePtr pow2_quantize(CgVariablePtr x, bool sign, bool with_zero,
 NBLA_API vector<CgVariablePtr> prune(Context &ctx, CgVariablePtr x, float rate);
 NBLA_API CgVariablePtr prune(CgVariablePtr x, float rate);
 
+NBLA_API vector<CgVariablePtr> quantize_linear(Context &ctx, CgVariablePtr x, CgVariablePtr scale, CgVariablePtr zero_point, const string & round_mode, bool narrow_range, int dtype);
+NBLA_API CgVariablePtr quantize_linear(CgVariablePtr x, CgVariablePtr scale, CgVariablePtr zero_point, const string & round_mode, bool narrow_range, int dtype);
+
+NBLA_API vector<CgVariablePtr> dequantize_linear(Context &ctx, CgVariablePtr x, CgVariablePtr scale, CgVariablePtr zero_point);
+NBLA_API CgVariablePtr dequantize_linear(CgVariablePtr x, CgVariablePtr scale, CgVariablePtr zero_point);
+
 NBLA_API vector<CgVariablePtr> top_n_error(Context &ctx, CgVariablePtr x, CgVariablePtr target, int axis, int n);
 NBLA_API CgVariablePtr top_n_error(CgVariablePtr x, CgVariablePtr target, int axis, int n);
 
@@ -577,9 +598,6 @@ NBLA_API CgVariablePtr nms_detection2d(CgVariablePtr x, float thresh, float nms,
 NBLA_API vector<CgVariablePtr> max_pooling_backward(Context &ctx, CgVariablePtr x, CgVariablePtr dy, const vector<int> & kernel, const vector<int> & stride, bool ignore_border, const vector<int> & pad, bool channel_last);
 NBLA_API CgVariablePtr max_pooling_backward(CgVariablePtr x, CgVariablePtr dy, const vector<int> & kernel, const vector<int> & stride, bool ignore_border, const vector<int> & pad, bool channel_last);
 
-NBLA_API vector<CgVariablePtr> warp_by_flow(Context &ctx, CgVariablePtr data, CgVariablePtr flow);
-NBLA_API CgVariablePtr warp_by_flow(CgVariablePtr data, CgVariablePtr flow);
-
 NBLA_API vector<CgVariablePtr> patch_correlation(Context &ctx, CgVariablePtr x1, CgVariablePtr x2, const vector<int> & patch, const vector<int> & shift, const vector<int> & patch_step, const vector<int> & shift_step, const vector<int> & padding);
 NBLA_API CgVariablePtr patch_correlation(CgVariablePtr x1, CgVariablePtr x2, const vector<int> & patch, const vector<int> & shift, const vector<int> & patch_step, const vector<int> & shift_step, const vector<int> & padding);
 
@@ -597,11 +615,35 @@ public:
   ConvolutionOpts &stride(const vector<int> &val);
   ConvolutionOpts &dilation(const vector<int> &val);
   ConvolutionOpts &channel_last(bool val);
-  int group();
-  const vector<int> &pad() const;
-  const vector<int> &stride() const;
-  const vector<int> &dilation() const;
-  bool channel_last() const;
+  int group() { return group_; };
+  const vector<int> &pad() const { return pad_; };
+  const vector<int> &stride() const { return stride_; };
+  const vector<int> &dilation() const {return dilation_; };
+  bool channel_last() const { return channel_last_; };
+};
+
+class NBLA_API DeconvolutionOpts {
+private:
+  int group_;
+  vector<int> pad_;
+  vector<int> stride_;
+  vector<int> dilation_;
+  bool channel_last_;
+  vector<int> output_padding_;
+public:
+  DeconvolutionOpts();
+  DeconvolutionOpts &group(int val);
+  DeconvolutionOpts &pad(const vector<int> &val);
+  DeconvolutionOpts &stride(const vector<int> &val);
+  DeconvolutionOpts &dilation(const vector<int> &val);
+  DeconvolutionOpts &channel_last(bool val);
+  DeconvolutionOpts &output_padding(const vector<int> &val);
+  int group() { return group_; };
+  const vector<int> &pad() const { return pad_; };
+  const vector<int> &stride() const { return stride_; };
+  const vector<int> &dilation() const {return dilation_; };
+  bool channel_last() const { return channel_last_; };
+  const vector<int> &output_padding() const { return output_padding_; };
 };
 
 class NBLA_API BatchNormalizationOpts {
@@ -638,14 +680,14 @@ public:
 };
 
 NBLA_API vector<CgVariablePtr> convolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, ConvolutionOpts &conv_opts);
-NBLA_API vector<CgVariablePtr> deconvolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, ConvolutionOpts &conv_opts);
+NBLA_API vector<CgVariablePtr> deconvolution(Context &ctx, CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, DeconvolutionOpts &);
 NBLA_API vector<CgVariablePtr> batch_normalization(Context &ctx, CgVariablePtr x, CgVariablePtr beta, CgVariablePtr gamma, CgVariablePtr mean, CgVariablePtr variance, bool batch_stat, BatchNormalizationOpts batch_opts);
 NBLA_API vector<CgVariablePtr> max_pooling(Context &ctx, CgVariablePtr x, const vector<int> & kernel, const vector<int> & stride, PoolingOpts pooling_opts = PoolingOpts());
 NBLA_API vector<CgVariablePtr> average_pooling(Context &ctx, CgVariablePtr x, const vector<int> & kernel, const vector<int> & stride, PoolingOpts pooling_opts = PoolingOpts());
 NBLA_API vector<CgVariablePtr> sum_pooling(Context &ctx, CgVariablePtr x, const vector<int> & kernel, const vector<int> & stride, PoolingOpts pooling_opts = PoolingOpts());
 
 NBLA_API CgVariablePtr convolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, ConvolutionOpts &conv_opts);
-NBLA_API CgVariablePtr deconvolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, ConvolutionOpts &conv_opts);
+NBLA_API CgVariablePtr deconvolution(CgVariablePtr x, CgVariablePtr weight, CgVariablePtr bias, int base_axis, int group, DeconvolutionOpts &);
 NBLA_API CgVariablePtr batch_normalization(CgVariablePtr x, CgVariablePtr beta, CgVariablePtr gamma, CgVariablePtr mean, CgVariablePtr variance, bool batch_stat, BatchNormalizationOpts batch_opts);
 NBLA_API CgVariablePtr max_pooling(CgVariablePtr x, const vector<int> & kernel, const vector<int> & stride, PoolingOpts pooling_opts = PoolingOpts());
 NBLA_API CgVariablePtr average_pooling(CgVariablePtr x, const vector<int> & kernel, const vector<int> & stride, PoolingOpts pooling_opts = PoolingOpts());

@@ -12,63 +12,65 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/** ReLU
- */
-#ifndef __NBLA_FUNCTION_RELU_HPP__
-#define __NBLA_FUNCTION_RELU_HPP__
+#ifndef NBLA_FUNCTION_QUANTIZE_LINEAR_HPP
+#define NBLA_FUNCTION_QUANTIZE_LINEAR_HPP
 
 #include <nbla/cpu.hpp>
+#include <nbla/dtypes.hpp>
 #include <nbla/function.hpp>
+#include <nbla/function/add2.hpp>
+#include <nbla/function/div2.hpp>
+#include <nbla/function/sum.hpp>
 #include <nbla/function_registry.hpp>
 
-#include <memory>
-#include <string>
+#include <nbla/imperative.hpp>
 
 namespace nbla {
 
-using std::string;
+NBLA_REGISTER_FUNCTION_HEADER(QuantizeLinear, const string &, bool, int);
 
-NBLA_REGISTER_FUNCTION_HEADER(ReLU, bool);
-
-/** Rectified Linear Unit (ReLU) defined as
-@f[
-y_i = \max (0, x_i).
-@f]
+/**
+    @todo Write doc.
 
 Inputs:
-- N-D array.
 
 Outputs:
-- N-D array.
 
-@tparam T Data type for computation.
-@param inplace The output array is will be shared with the input array if true.
 \ingroup FunctionImplGrp
  */
-template <typename T> class ReLU : public BaseFunction<bool> {
+template <typename T>
+class QuantizeLinear : public BaseFunction<const string &, bool, int> {
 protected:
-  bool inplace_;
+  string round_mode_;
+  bool narrow_range_;
+  int dtype_;
+
+  shared_ptr<Function> div2_;
+  shared_ptr<Function> add2_;
+  shared_ptr<Function> sum_;
+
+  int min_range_;
+  int max_range_;
 
 public:
-  ReLU(const Context &ctx, bool inplace)
-      : BaseFunction(ctx, inplace), inplace_(inplace) {}
-  virtual ~ReLU() {}
+  QuantizeLinear(const Context &ctx, const string &round_mode,
+                 bool narrow_range, int dtype)
+      : BaseFunction(ctx, round_mode, narrow_range, dtype),
+        round_mode_(round_mode), narrow_range_(narrow_range), dtype_(dtype) {}
+  virtual ~QuantizeLinear() {}
   virtual shared_ptr<Function> copy() const {
-    return create_ReLU(ctx_, inplace_);
+    return create_QuantizeLinear(ctx_, round_mode_, narrow_range_, dtype_);
   }
-  virtual int min_inputs() { return 1; }
+  virtual int min_inputs() { return 3; }
   virtual int min_outputs() { return 1; }
-  virtual vector<dtypes> in_types() { return vector<dtypes>{get_dtype<T>()}; }
+  virtual vector<dtypes> in_types() {
+    return vector<dtypes>{get_dtype<T>(), get_dtype<T>(), get_dtype<T>()};
+  }
   virtual vector<dtypes> out_types() { return vector<dtypes>{get_dtype<T>()}; }
-  virtual string name() { return "ReLU"; }
   virtual vector<string> allowed_array_classes() {
     return SingletonManager::get<Cpu>()->array_classes();
   }
-  virtual bool grad_depends_output_data(int i, int o) const { return inplace_; }
-  virtual int inplace_data(int i) const {
-    return inplace_ ? Function::INPLACE : Function::NOT_INPLACE;
-  }
-  virtual int inplace_data_with(int i) const { return 0; }
+  virtual string name() { return "QuantizeLinear"; }
 
 protected:
   NBLA_API virtual void setup_impl(const Variables &inputs,
@@ -79,6 +81,8 @@ protected:
                                       const Variables &outputs,
                                       const vector<bool> &propagate_down,
                                       const vector<bool> &accum);
+  NBLA_API virtual void round(Variable *inp, std::string round_mode);
+  NBLA_API virtual void saturate(Variable *inp, int min_range, int max_range);
 };
 }
 #endif

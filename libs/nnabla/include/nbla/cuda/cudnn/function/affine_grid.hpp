@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 Sony Corporation. All Rights Reserved.
+// Copyright (c) 2017 Sony Corporation. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,39 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NBLA_CUDA_FUNCTION_IFFT_HPP
-#define NBLA_CUDA_FUNCTION_IFFT_HPP
+#ifndef NBLA_CUDA_CUDNN_FUNCTION_AFFINE_GRID_HPP
+#define NBLA_CUDA_CUDNN_FUNCTION_AFFINE_GRID_HPP
 
-#include <cufft.h>
-#include <cufftXt.h>
 #include <nbla/cuda/cuda.hpp>
-#include <nbla/cuda/function/utils/fft.hpp>
-#include <nbla/function/ifft.hpp>
+#include <nbla/cuda/cudnn/cudnn.hpp>
+
+#include <nbla/cuda/function/affine_grid.hpp>
 
 namespace nbla {
 
-template <typename T> class IFFTCuda : public IFFT<T> {
+namespace affine_grid {
+inline bool cudnn_condition(int size, bool align_corners) {
+  return (size == 2 && align_corners == true) ? true : false;
+}
+}
+
+template <typename T> class AffineGridCudaCudnn : public AffineGridCuda<T> {
 public:
   typedef typename CudaType<T>::type Tcu;
 
-  explicit IFFTCuda(const Context &ctx, int signal_ndim, bool normalized)
-      : IFFT<T>(ctx, signal_ndim, normalized), signal_size_(1),
+  explicit AffineGridCudaCudnn(const Context &ctx, const vector<int> &size,
+                               bool align_corners)
+      : AffineGridCuda<T>(ctx, size, align_corners),
         device_(std::stoi(ctx.device_id)) {
-    NBLA_CUFFT_CHECK(cufftCreate(&plan_forward_));
-    NBLA_CUFFT_CHECK(cufftCreate(&plan_backward_));
+    if (affine_grid::cudnn_condition(this->size_.size(),
+                                     this->align_corners_)) {
+      NBLA_CUDNN_CHECK(cudnnCreateSpatialTransformerDescriptor(&theta_desc_));
+    }
   }
-  virtual ~IFFTCuda();
-  virtual string name() { return "IFFTCuda"; }
+  virtual ~AffineGridCudaCudnn() {
+    if (affine_grid::cudnn_condition(this->size_.size(),
+                                     this->align_corners_)) {
+      NBLA_CUDNN_CHECK(cudnnDestroySpatialTransformerDescriptor(theta_desc_));
+    }
+  }
+  virtual string name() { return "AffineGridCudaCudnn"; }
   virtual vector<string> allowed_array_classes() {
     return SingletonManager::get<Cuda>()->array_classes();
   }
 
 protected:
-  Size_t signal_size_;
   int device_;
-  cufftHandle plan_forward_;
-  cufftHandle plan_backward_;
-  vector<long long int> n_;
+
+  cudnnSpatialTransformerDescriptor_t theta_desc_;
 
   virtual void setup_impl(const Variables &inputs, const Variables &outputs);
   virtual void forward_impl(const Variables &inputs, const Variables &outputs);

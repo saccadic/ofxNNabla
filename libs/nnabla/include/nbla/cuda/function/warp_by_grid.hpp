@@ -12,31 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/** Deconvolution
- */
-#ifndef __NBLA_CUDA_FUNCTION_DECONVOLUTION_HPP__
-#define __NBLA_CUDA_FUNCTION_DECONVOLUTION_HPP__
+#ifndef NBLA_CUDA_FUNCTION_WARP_BY_GRID_HPP
+#define NBLA_CUDA_FUNCTION_WARP_BY_GRID_HPP
 
 #include <nbla/cuda/cuda.hpp>
-#include <nbla/function/deconvolution.hpp>
+#include <nbla/function/warp_by_grid.hpp>
+
 namespace nbla {
-/** @copydoc Deconvolution
-*/
 
-template <typename T> class DeconvolutionCuda : public Deconvolution<T> {
-
+template <typename T> class WarpByGridCuda : public WarpByGrid<T> {
 public:
-  typedef typename CudaType<T>::type Tc;
-  explicit DeconvolutionCuda(const Context &ctx, int base_axis,
-                             const vector<int> &pad, const vector<int> &stride,
-                             const vector<int> &dilation, int group,
-                             bool channel_last,
-                             const vector<int> &output_padding)
-      : Deconvolution<T>(ctx, base_axis, pad, stride, dilation, group,
-                         channel_last, output_padding),
+  typedef typename CudaType<T>::type Tcu;
+
+  explicit WarpByGridCuda(const Context &ctx, const string &mode,
+                          const string &padding_mode, bool align_corners,
+                          bool channel_last)
+      : WarpByGrid<T>(ctx, mode, padding_mode, align_corners, channel_last),
         device_(std::stoi(ctx.device_id)) {}
-  virtual ~DeconvolutionCuda() {}
-  virtual string name() { return "DeconvolutionCuda"; }
+  virtual ~WarpByGridCuda() {}
+  virtual string name() { return "WarpByGridCuda"; }
   virtual vector<string> allowed_array_classes() {
     return SingletonManager::get<Cuda>()->array_classes();
   }
@@ -50,5 +44,4 @@ protected:
                              const vector<bool> &accum);
 };
 }
-
 #endif

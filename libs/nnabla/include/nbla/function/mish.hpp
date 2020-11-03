@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NBLA_FUNCTION_GELU_HPP
-#define NBLA_FUNCTION_GELU_HPP
+#ifndef NBLA_FUNCTION_MISH_HPP
+#define NBLA_FUNCTION_MISH_HPP
 
 #include <nbla/function/utils/base_transform_unary.hpp>
 
 #include <cmath>
 
-#ifndef M_PI
-#define M_PI (3.14159265358979323846)
-#endif
-
 namespace nbla {
 
-NBLA_REGISTER_FUNCTION_HEADER(GELU);
+NBLA_REGISTER_FUNCTION_HEADER(Mish);
 
 /**
 Inputs:
@@ -35,17 +31,14 @@ Outputs:
 - N-D array.
 
 \ingroup FunctionImplGrp
- */
+*/
 
 NBLA_DEFINE_TRANSFORM_UNARY(
-    GELU, (x / 2) * (1 + std::tanh((std::sqrt((T)(2 / M_PI)) *
-                                    (x + (T)0.044715 * std::pow(x, 3))))),
-    dy *(0.5 * (1 + std::tanh(std::sqrt((T)(2 / M_PI)) *
-                              (x + (T)0.044715 * std::pow(x, 3)))) +
-         0.5 * x * (1 - std::pow(std::tanh(std::sqrt((T)(2 / M_PI)) *
-                                           (x + (T)0.044715 * std::pow(x, 3))),
-                                 2)) *
-             std::sqrt((T)(2 / M_PI)) * (1 + 0.134145 * std::pow(x, 2))),
-    true);
+    Mish, x *std::tanh(std::log(std::exp(x) + (T)1)),
+    (dy * std::exp(x) *
+     ((T)4 * (x + (T)1) + (T)4 * (std::exp((T)2 * x)) + std::exp((T)3 * x) +
+      std::exp(x) * ((T)4 * x + (T)6))) /
+        std::pow((T)2 * std::exp(x) + std::exp((T)2 * x) + (T)2, (T)2),
+    false);
 }
 #endif

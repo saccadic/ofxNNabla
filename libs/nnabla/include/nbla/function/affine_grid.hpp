@@ -12,63 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/** ReLU
- */
-#ifndef __NBLA_FUNCTION_RELU_HPP__
-#define __NBLA_FUNCTION_RELU_HPP__
+#ifndef NBLA_FUNCTION_AFFINE_GRID_HPP
+#define NBLA_FUNCTION_AFFINE_GRID_HPP
 
 #include <nbla/cpu.hpp>
 #include <nbla/function.hpp>
+#include <nbla/function/batch_matmul.hpp>
 #include <nbla/function_registry.hpp>
-
-#include <memory>
-#include <string>
+#include <nbla/imperative.hpp>
 
 namespace nbla {
 
-using std::string;
+NBLA_REGISTER_FUNCTION_HEADER(AffineGrid, const vector<int> &, bool);
 
-NBLA_REGISTER_FUNCTION_HEADER(ReLU, bool);
-
-/** Rectified Linear Unit (ReLU) defined as
-@f[
-y_i = \max (0, x_i).
-@f]
+/**
 
 Inputs:
-- N-D array.
+- theta: N-D array with the shape (\f$B \times 2 \times 3\f$), the sample-wise
+  affine transformation matrix.
 
 Outputs:
-- N-D array.
+- grid: N-D array with the shape (\f$B \times H \times W \times 2\f$) for 2D and
+(\f$B \times D \times H \times W \times 3\f$) for 3D. The last dimension of 2 is
+for (x, y) and of 3 for (x, y, z). The `gird` is used as the source grid for the
+warping.
 
 @tparam T Data type for computation.
-@param inplace The output array is will be shared with the input array if true.
+@param size The grid size of (\f$H \times W\f$) for 2D and (\f$D \times H \times
+W\f$) for 3D.
+@param align_corners If `True`, the top-left and bottom-right pixcels correspond
+to (-1, -1) and (1, 1) respectively since a pixel is located on the corner of a
+grid, and the target grid is normalized in [-1, 1]. If `False`, the normalized
+target grid in [-1, 1] is scaled by `size - 1 / size` according to the
+respective spatial size (e.g., \f$H\f$ and \f$W\f$) before the transformation
+since a pixel is located on a center of a cell in a grid.
+
+
 \ingroup FunctionImplGrp
  */
-template <typename T> class ReLU : public BaseFunction<bool> {
+template <typename T>
+class AffineGrid : public BaseFunction<const vector<int> &, bool> {
 protected:
-  bool inplace_;
+  const vector<int> size_;
+  bool align_corners_;
+  shared_ptr<Function> batch_matmul_;
 
 public:
-  ReLU(const Context &ctx, bool inplace)
-      : BaseFunction(ctx, inplace), inplace_(inplace) {}
-  virtual ~ReLU() {}
+  AffineGrid(const Context &ctx, const vector<int> &size, bool align_corners)
+      : BaseFunction(ctx, size, align_corners), size_(size),
+        align_corners_(align_corners) {}
+  virtual ~AffineGrid() {}
   virtual shared_ptr<Function> copy() const {
-    return create_ReLU(ctx_, inplace_);
+    return create_AffineGrid(ctx_, size_, align_corners_);
   }
   virtual int min_inputs() { return 1; }
   virtual int min_outputs() { return 1; }
   virtual vector<dtypes> in_types() { return vector<dtypes>{get_dtype<T>()}; }
   virtual vector<dtypes> out_types() { return vector<dtypes>{get_dtype<T>()}; }
-  virtual string name() { return "ReLU"; }
   virtual vector<string> allowed_array_classes() {
     return SingletonManager::get<Cpu>()->array_classes();
   }
-  virtual bool grad_depends_output_data(int i, int o) const { return inplace_; }
-  virtual int inplace_data(int i) const {
-    return inplace_ ? Function::INPLACE : Function::NOT_INPLACE;
-  }
-  virtual int inplace_data_with(int i) const { return 0; }
+  virtual string name() { return "AffineGrid"; }
 
 protected:
   NBLA_API virtual void setup_impl(const Variables &inputs,
