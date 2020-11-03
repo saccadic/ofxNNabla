@@ -1,18 +1,28 @@
-# ofxNNable
+# ofxNNabla
 Neural Network Libraries for openFrameworks.
 
 ### Description
 
 Neural Network Libraries is a deep learning framework by Sony Corp.
 * https://github.com/sony/nnabla
-* Using version 1.80
+* Using version 1.12
 * windows 64bit only
 
 ### Todo
 
 * [x] Wapper for openFrameworks
-* [x] Add example projects
-* [x] Update library
+* [ ] Add example projects
+  * [x] mnist(CNN+Affine)
+  * [ ] resnet
+  * [ ] autoencoder
+  * [ ] variational auto encoder
+  * [ ] u-net
+  * [ ] generative adversarial networks
+  * [ ] elman net
+  * [ ] lstm
+  
+* Update library
+  * [x] v1.12
 
 ### Update
 
