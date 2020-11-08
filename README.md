@@ -10,7 +10,7 @@ Neural Network Libraries is a deep learning framework by Sony Corp.
 
 ### Todo
 
-* [x] Wapper for openFrameworks
+* [x] Develop nnabla wrapper class for openFrameworks
 * [ ] Add example projects
   * [x] mnist(CNN+Affine)
   * [x] resnet
