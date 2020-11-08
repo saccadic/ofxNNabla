@@ -31,22 +31,22 @@ void ofApp::setup() {
 		cout << "*";
 	}
 
-	index.push_back("airplane");
-	index.push_back("automobile");
-	index.push_back("bird");
-	index.push_back("cat");
-	index.push_back("deer");
-	index.push_back("dog");
-	index.push_back("frog");
-	index.push_back("horse");
-	index.push_back("ship");
-	index.push_back("truck");
+	index.push_back("airplane");	//0
+	index.push_back("automobile");	//1
+	index.push_back("bird");		//2
+	index.push_back("cat");			//3
+	index.push_back("deer");		//4
+	index.push_back("dog");			//5
+	index.push_back("frog");		//6
+	index.push_back("horse");		//7
+	index.push_back("ship");		//8
+	index.push_back("truck");		//9
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
 	float elapseTime = ofGetElapsedTimeMillis() - time;
-	if (elapseTime > 1000) {
+	if (elapseTime > 10) {
 
 		int id = int(ofRandom(0, 9));
 		string label = index[id];
@@ -54,20 +54,14 @@ void ofApp::update() {
 		string img_path = validation_path[label][num];
 		img.load(img_path);
 		img.update();
-
+		//img.getPixelsRef().swapRgb();
 		runtime->upload(img.getPixelsRef(), 1);
 		runtime->Run();
 		auto result = runtime->GetOutputArrayPtr(0);
 
 		probabilistic_result.clear();
 		for (int i = 0; i < 10; i++) {
-			if (result[i] > 0) {
-				probabilistic_result.push_back(result[i]);
-			}
-			else {
-				probabilistic_result.push_back(0);
-			}
-
+			probabilistic_result.push_back(result[i]);
 		}
 		auto iter = std::max_element(
 			probabilistic_result.begin(),
@@ -88,12 +82,14 @@ void ofApp::draw() {
 	ofTranslate(512 + 10, 0);
 	for (int i = 0; i < probabilistic_result.size(); i++) {
 		ofTranslate(200, 0);
+
 		auto p = probabilistic_result[i] * (512 - 50);
 		if (i == max_index)
 			ofSetColor(255, 0, 0);
 		else
 			ofSetColor(255);
-		ofDrawRectangle(0, 512 - 50, 200, -p);
+		if(probabilistic_result[i]>0)
+			ofDrawRectangle(0, 512 - 50, 100, -p);
 		font.drawString(index[i], 0, 512 - 10);
 	}
 	ofPopStyle();
