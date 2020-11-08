@@ -22,7 +22,7 @@ namespace ofxnnabla {
 
 		Runtime() {
 #ifdef WITH_CUDA
-			Init(RUN::CPU);
+			Init(RUN::GPU);
 #else
 			Init(RUN::CPU);
 #endif	
