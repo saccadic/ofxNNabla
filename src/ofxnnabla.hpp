@@ -70,7 +70,7 @@ namespace ofxnnabla {
 		}
 
 #ifdef OPENCV_ALL_HPP
-		void upload(const cv::Mat &src, T scale) {
+		void upload(const cv::Mat& src, T scale) {
 			auto inputPtr = GetInputArrayPtr(0);
 			for (int i = 0; i < src.cols * src.rows; i++) {
 				inputPtr[i] = T(src.data[i]) * scale;
@@ -78,18 +78,33 @@ namespace ofxnnabla {
 		}
 #endif // OPENCV_ALL_HPP
 
-		void upload(ofBuffer & buf, T scale) {
+		void upload(ofBuffer& buf, T scale) {
 			auto inputPtr = GetInputArrayPtr(0);
 			for (int i = 0; i < buf.size(); i++) {
 				inputPtr[i] = T(buf.data[i]) * scale;
 			}
 		}
 
-		void upload(ofPixelsRef & pix, T scale) {
+		void upload(ofPixelsRef& pix, T scale) {
 			auto inputPtr = GetInputArrayPtr(0);
-			for (int i = 0; i < pix.size(); i++) {
-				inputPtr[i] = T(pix.getData()[i]) * scale;
+
+			//https://groups.google.com/g/neural_network_console_users_jp/c/LHf7w2slWRA/m/JxCwP42IAQAJ
+
+			//RGBRGBRGB -> RRRGGGBBB
+			if (pix.getNumChannels() == 3) {
+				int padding = pix.getWidth() * pix.getHeight();
+				for (int i = 0; i < padding; i++) {
+					inputPtr[i] = T(pix.getData()[3 * i]) * scale;
+					inputPtr[i + padding] = T(pix.getData()[3 * i + 1]) * scale;
+					inputPtr[i + padding * 2] = T(pix.getData()[3 * i + 2]) * scale;
+				}
 			}
+			else {
+				for (int i = 0; i < pix.size(); i++) {
+					inputPtr[i] = T(pix.getData()[i]) * scale;
+				}
+			}
+
 		}
 
 		void Run() {
