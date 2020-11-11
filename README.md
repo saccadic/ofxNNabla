@@ -28,3 +28,4 @@ Neural Network Libraries is a deep learning framework by Sony Corp.
 
 * [11/03] update to V1.12 and add example-mnist
 * [11/08] bugfix and add example-resnet
+* [11/11] update addon config
