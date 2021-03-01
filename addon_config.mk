@@ -62,10 +62,11 @@ common:
 
 vs:
 	ADDON_DATA = nnabla.dll
-	ADDON_DATA += nnabla_utils.dll
-	ADDON_DATA += nnabla_cuda.dll
 	ADDON_DATA += nnabla_d.dll
+	ADDON_DATA += nnabla_utils.dll
 	ADDON_DATA += nnabla_utils_d.dll
+	ADDON_DATA += nnabla_cuda.dll
+	ADDON_DATA += nnabla_cuda_d.dll
 	ADDON_DATA += archive.dll
 	ADDON_DATA += zlibwapi.dll
 	ADDON_DATA += cublas64_100.dll
