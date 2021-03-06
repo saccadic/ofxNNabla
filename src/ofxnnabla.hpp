@@ -72,8 +72,18 @@ namespace ofxnnabla {
 #ifdef OPENCV_ALL_HPP
 		void upload(const cv::Mat& src, T scale) {
 			auto inputPtr = GetInputArrayPtr(0);
-			for (int i = 0; i < src.cols * src.rows; i++) {
-				inputPtr[i] = T(src.data[i]) * scale;
+			int size = src.cols * src.rows;
+			if (src.channels() == 3) {
+				for (int i = 0; i < size; i++) {
+					inputPtr[i] = T(src.data[3 * i]) * scale;
+					inputPtr[i + size] = T(src.data[3 * i + 1]) * scale;
+					inputPtr[i + size * 2] = T(src.data[3 * i + 2]) * scale;
+				}
+			}
+			else {
+				for (int i = 0; i < size; i++) {
+					inputPtr[i] = T(src.data[i]) * scale;
+				}
 			}
 		}
 #endif // OPENCV_ALL_HPP
